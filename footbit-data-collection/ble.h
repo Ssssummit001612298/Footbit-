@@ -6,6 +6,8 @@
 
 #include "info_service.h"
 #include "random_number_service.h"
+#include "Accel_Service.h"
+#include "PPG_Service.h"
 
 const char deviceName[] = "footbit-01";
 bool isConnected = false;
@@ -77,12 +79,16 @@ void setupBluefruit() {
     // TODO: setup data stream services
     setupInfoService();
     setupRandomNumberService();
+    setupAccelService();
+    setupPPGService();
 
     Serial.println("Setup and Start Advertising");
     startAdv();
 }
 
 /* Service Methods */
+
+//why don't we set up accel or ppg here?
 
 /* Random Number Service */
 bool isRandomNumberDataStreamEnabled() {

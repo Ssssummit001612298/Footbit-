@@ -4,6 +4,8 @@
 
 #include "ble.h"
 #include "info_service.h"
+#include "Accel_Service.h"
+#include "PPG_Service.h"
 
 // Reset pin, MFIO pin
 int resPin = A4;
@@ -39,6 +41,12 @@ bioData body;
 // body.confidence - Confidence in the heartrate value
 // body.oxygen     - Blood oxygen level
 // body.status     - Has a finger been sensed?
+
+
+uint32_t lastAccelRecording = millis();
+uint32_t lastPPGRecording = millis();
+uint16_t ppgSampleRate = 0;
+uint16_t ppgPulseWidth = 0;
 
 void setup(){
 
@@ -120,22 +128,66 @@ void loop(){
         delay(1000);
     }
 
+    uint32_t now = millis();
+    uint16_t accel_freq = accelServiceDesiredFrequencyMS();
+    uint16_t ppg_freq = ppgServiceDesiredFrequencyMS();
 
-    body = bioHub.readSensor();
-    Serial.print(body.irLed); 
-    Serial.print(", ");
-    Serial.println(body.redLed);
+    if ( (now - lastAccelRecording) > accel_freq && isAccelServiceEnabled()) {
+      uint32_t ax, ay, az;
+      
+      sensors_event_t accel, gyro, temp;
 
-    float ax, ay, az;
-    sensors_event_t accel, gyro, temp;
+      accelerometer.getEvent(&accel, &gyro, &temp); 
 
-    accelerometer.getEvent(&accel, &gyro, &temp);  //  get the data
+      ax = (accel.acceleration.x * 100.0);  
+      ay = (accel.acceleration.y * 100.0);
+      az = (accel.acceleration.z * 100.0);
 
-    ax = accel.acceleration.x;   //  Copy to convenient variables. Not necessary
-    ay = accel.acceleration.y;
-    az = accel.acceleration.z;
+      Serial.print("ax: ");
+      Serial.print(ax);
+      Serial.print(" ay: ");
+      Serial.print(ay);
+      Serial.print(" az: ");
+      Serial.println(az);
 
-    Serial.print(ax);                          //  Print plain data so that
-    Serial.print("  ");   Serial.print(ay);    //  Serial Plotter can be used
-    Serial.print("  ");   Serial.println(az);
+      // uint32_t refTime = now - referenceTimeMS;
+      // Serial.print("refernece time: ");
+      // Serial.println(refTime);
+
+      recordAccel(ax, ay, az, referenceTimeMS);
+
+      lastAccelRecording = millis();
+    }
+    
+    if ( (now - lastPPGRecording) > ppg_freq && isPPGServiceEnabled()) {
+      
+      if ( ppgSampleRate != getPPGSampleRate() && getPPGSampleRate() > 0 ) {
+        Serial.println("setting ppg sample rate");
+        ppgSampleRate = getPPGSampleRate();
+        uint8_t error = bioHub.setSampleRate(ppgSampleRate);
+        if (error == 0){// Zero errors.
+          Serial.println("Pulse Width Set.");
+        }
+      }
+
+      if ( ppgPulseWidth != getPPGPulseWidth() && getPPGPulseWidth() > 0 ) {
+        Serial.println("setting ppg pulse rate");
+        ppgPulseWidth = getPPGPulseWidth();
+        uint8_t error = bioHub.setPulseWidth(ppgPulseWidth);
+        if (error == 0){// Zero errors.
+          Serial.println("Pulse Width Set.");
+        }
+      }
+
+      uint32_t start = millis();
+      body = bioHub.readSensor();
+      Serial.print(body.irLed); 
+      Serial.print(", ");
+      Serial.println(body.redLed);
+      Serial.print("sensor read: ");
+      Serial.println(millis() - start);
+
+      recordPPG(body.redLed, body.irLed, referenceTimeMS);
+      lastPPGRecording = millis();
+    }
 }
