@@ -94,9 +94,9 @@ bool isPPGServiceEnabled() {
 }
 
 //Getting first two elements of the array 
-uint16_t ppgServiceDesiredFrequencyMS() {
+float ppgServiceDesiredFrequencyMS() {
   uint16_t desiredFreqHZ = ppgConfigData[1] << 8 | ppgConfigData[2];
-  return 1000 / desiredFreqHZ;
+  return 1000.0 / desiredFreqHZ;
 }
 
 uint16_t getPPGSampleRate() {

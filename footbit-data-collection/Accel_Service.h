@@ -80,9 +80,9 @@ bool isAccelServiceEnabled() {
 }
 
 //Getting first two elements of the array 
-uint16_t accelServiceDesiredFrequencyMS() {
+float accelServiceDesiredFrequencyMS() {
   uint16_t desiredFreqHZ = accelConfigData[1] << 8 | accelConfigData[2];
-  return 1000 / desiredFreqHZ;
+  return 1000.0 / desiredFreqHZ;
 }
 
 
@@ -127,6 +127,11 @@ void recordAccel(int16_t x, int16_t y, int16_t z, int32_t referenceTimeMS)
   }
 
   accelLastRecordedMS = millis();
+
+  Serial.print("last recorded accel: ");
+  Serial.print(accelLastRecordedMS);
+  Serial.print(" record offset: ");
+  Serial.println(recordOffset);
 
 //x
     accelDataBuf[accelCursor++] = (x >> 8) & 0xFF;

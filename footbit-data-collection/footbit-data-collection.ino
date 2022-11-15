@@ -132,12 +132,21 @@ void loop(){
     uint16_t accel_freq = accelServiceDesiredFrequencyMS();
     uint16_t ppg_freq = ppgServiceDesiredFrequencyMS();
 
-    if ( (now - lastAccelRecording) > accel_freq && isAccelServiceEnabled()) {
-      uint32_t ax, ay, az;
+    if ( (millis() - lastAccelRecording) >= accel_freq-1 && isAccelServiceEnabled()) {
+      int32_t ax, ay, az;
+
+      Serial.print("now: ");
+      Serial.print(now);
+      Serial.print(" accel freq: ");
+      Serial.print(accel_freq);
+      Serial.print(" time diff: ");
+      Serial.print(now - lastAccelRecording);
+      Serial.println();
       
       sensors_event_t accel, gyro, temp;
 
       accelerometer.getEvent(&accel, &gyro, &temp); 
+      lastAccelRecording = millis();
 
       ax = (accel.acceleration.x * 100.0);  
       ay = (accel.acceleration.y * 100.0);
@@ -153,13 +162,13 @@ void loop(){
       // uint32_t refTime = now - referenceTimeMS;
       // Serial.print("refernece time: ");
       // Serial.println(refTime);
-
+      uint32_t _start = millis();
       recordAccel(ax, ay, az, referenceTimeMS);
-
-      lastAccelRecording = millis();
+      Serial.print("time elapsed in recording BLE: ");
+      Serial.println(millis() - _start);
     }
     
-    if ( (now - lastPPGRecording) > ppg_freq && isPPGServiceEnabled()) {
+    if ( (millis() - lastPPGRecording) >= ppg_freq-4 && isPPGServiceEnabled()) {
       
       if ( ppgSampleRate != getPPGSampleRate() && getPPGSampleRate() > 0 ) {
         Serial.println("setting ppg sample rate");
@@ -180,7 +189,10 @@ void loop(){
       }
 
       uint32_t start = millis();
+      
       body = bioHub.readSensor();
+      lastPPGRecording = millis();
+
       Serial.print(body.irLed); 
       Serial.print(", ");
       Serial.println(body.redLed);
@@ -188,6 +200,5 @@ void loop(){
       Serial.println(millis() - start);
 
       recordPPG(body.redLed, body.irLed, referenceTimeMS);
-      lastPPGRecording = millis();
     }
 }
