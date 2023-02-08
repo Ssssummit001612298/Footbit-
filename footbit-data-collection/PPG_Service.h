@@ -8,6 +8,8 @@
  */
 
 
+#//https://learn.sparkfun.com/tutorials/max30105-particle-and-pulse-ox-sensor-hookup-guide?_ga=2.261135112.401486308.1672934969-1889964623.1672934969#advanced-functions
+
 const uint8_t ppgServiceUuid128[] =          { 0x37, 0x2d, 0xa0, 0xd8, 0x06, 0xfc, 0x1e, 0xad, 0x11, 0x4d, 0xed, 0xc2, 0x01, 0x00, 0x25, 0x1a };
 const uint8_t ppgServiceDataChrUuid128[] =   { 0x37, 0x2d, 0xa0, 0xd8, 0x06, 0xfc, 0x1e, 0xad, 0x11, 0x4d, 0xed, 0xc2, 0x02, 0x00, 0x25, 0x1a };
 const uint8_t ppgServiceConfigChrUuid128[] = { 0x37, 0x2d, 0xa0, 0xd8, 0x06, 0xfc, 0x1e, 0xad, 0x11, 0x4d, 0xed, 0xc2, 0x03, 0x00, 0x25, 0x1a };
@@ -17,33 +19,30 @@ BLEService ppgService = BLEService(ppgServiceUuid128);
 BLECharacteristic ppgDataChr = BLECharacteristic(ppgServiceDataChrUuid128);
 BLECharacteristic ppgConfigChr = BLECharacteristic(ppgServiceConfigChrUuid128);
 
-const uint8_t ppgConfigDataLen = 5;
 /*
 Configuration Array 
   - byte 0: Sensor state
     - 0 = off
     - 1 = streaming
-  - bytes 1-2: desired sensor freq
-  - byte 3: Sensor Sample Size
+  - byte 1: Sensor Sample Rate (Hz)
    - 0 = 50
    - 1 = 100
    - 2 = 200
    - 3 = 400
-   - 4 = 800
-   - 5 = 1000
-   - 6 = 1600
-   - 7 = 3200
-  - byte 4: Senor LED Pulse Width
+  - byte 2: Senor LED Pulse Width
     - 0 = 69us
     - 1 = 118us
     - 2 = 215us
     - 3 = 411us
+  - byte 3: Senor LED brightness (0-255)
 */
-
-uint8_t ppgConfigData[ppgConfigDataLen] = {0x00, 0x00, 0x20, 0x00, 0x00};
-
+const uint8_t ppgConfigDataLen = 4;
+uint8_t ppgConfigData[ppgConfigDataLen] = {0x00, 0x00, 0x00, 0x00};
 
 const uint8_t ppgDataLen = 240;
+// --> const uint8_t ppgDataLen = ?;
+// --> def have to change but unsure to what
+
 uint8_t ppgDataBuf[ppgDataLen] = { 0x00 };
 
 //current position in data buffer
@@ -88,33 +87,23 @@ void setupPPGService()
 }
 
 
-//Telling us if service is enabled
+// CONFIGURATION GETS
 bool isPPGServiceEnabled() {
   return ppgConfigData[0] == 1;
 }
 
-//Getting first two elements of the array 
-float ppgServiceDesiredFrequencyMS() {
-  uint16_t desiredFreqHZ = ppgConfigData[1] << 8 | ppgConfigData[2];
-  return 1000.0 / desiredFreqHZ;
-}
-
 uint16_t getPPGSampleRate() {
-  switch (ppgConfigData[3]) {
+  switch (ppgConfigData[1]) {
     case 0: return 50;
     case 1: return 100;
     case 2: return 200;
     case 3: return 400;
-    case 4: return 800;
-    case 5: return 1000;
-    case 6: return 1600;
-    case 7: return 3200;
     default: return 0;
   }
 }
 
 uint16_t getPPGPulseWidth() {
-  switch (ppgConfigData[4]) {
+  switch (ppgConfigData[2]) {
     case 0: return 69;
     case 1: return 118;
     case 2: return 215;
@@ -123,14 +112,12 @@ uint16_t getPPGPulseWidth() {
   }
 }
 
+uint8_t getPPGBrightness() {
+  return ppgConfigData[3];
+}
 
-//Taking in four arguments 
-
-//here taking in two 
-
-// for ppg, taking in two arguments 
-//void _recordAccel(uint32_t x, uint32_t y, uint32_t z, uint32_t referenceTimeMS)
-void recordPPG(uint32_t red, uint32_t ir, int32_t referenceTimeMS)
+//--> Change so taking in green as well
+void recordPPG(uint32_t red, uint32_t ir, uint32_t green, int32_t referenceTimeMS)
 { 
   if (!isPPGServiceEnabled()) {
     return;
@@ -185,9 +172,14 @@ void recordPPG(uint32_t red, uint32_t ir, int32_t referenceTimeMS)
   ppgDataBuf[ppgCursor++] = (ir >> 8) & 0xFF;
   ppgDataBuf[ppgCursor++] = (ir) & 0xFF;
 
+//--> adding in green value
+  ppgDataBuf[ppgCursor++] = (green >> 24) & 0xFF;
+  ppgDataBuf[ppgCursor++] = (green >> 16) & 0xFF;
+  ppgDataBuf[ppgCursor++] = (green >> 8) & 0xFF;
+  ppgDataBuf[ppgCursor++] = (green) & 0xFF;
 
   ppgDataBuf[ppgCursor++] = (uint8_t)recordOffset;
 }
 
 
-#endif // RANDOM_NUMBER_SERVICE_H
+#endif // PPG_SERVICE_H

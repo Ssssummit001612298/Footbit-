@@ -7,8 +7,15 @@
      "development"
   ],
   "ble_registered_devices":[
-     
-  ],
+   {
+       "name": "Polar",
+       "services": [
+           "heart-rate",
+           "battery"
+       ],
+       "description": "a polar heart rate monitor for ground truth data collection"
+   }
+   ],
   "devices":[
      {
         "name":"footbit",
@@ -175,27 +182,10 @@
                     "range":null
                  },
                  {
-                    "name":"desired_frequency",
-                    "description":"the desired frequency of the sensor",
-                    "byte_start":1,
-                    "byte_end":3,
-                    "size":2,
-                    "data_type":"uint",
-                    "selection_type":"range",
-                    "unit":"Hz",
-                    "options":null,
-                    "default_value":"10",
-                    "range":{
-                       "start":20,
-                       "end":500,
-                       "step":20
-                    }
-                 },
-                 {
                   "name":"ppg_sample_rate",
                   "description":"sample rate of the MAX30101 sensor",
-                  "byte_start":3,
-                  "byte_end":4,
+                  "byte_start":1,
+                  "byte_end":2,
                   "size":1,
                   "unit": null,
                   "data_type":"uint",
@@ -221,26 +211,6 @@
                       "name":"400",
                       "description":"400",
                       "value":"3"
-                    },
-                    {
-                      "name":"800",
-                      "description":"800",
-                      "value":"4"
-                    },
-                    {
-                      "name":"1000",
-                      "description":"1000",
-                      "value":"5"
-                    },
-                    {
-                      "name":"1600",
-                      "description":"1600",
-                      "value":"6"
-                    },
-                    {
-                      "name":"3200",
-                      "description":"3200",
-                      "value":"7"
                     }
                   ],
                   "range":null
@@ -248,8 +218,8 @@
                {
                 "name":"ppg_pulse_width",
                 "description":"Pulse width of the MAX30101 LEDs",
-                "byte_start":4,
-                "byte_end":5,
+                "byte_start":2,
+                "byte_end":3,
                 "size":1,
                 "unit":null,
                 "data_type":"uint",
@@ -282,59 +252,22 @@
               {
                "name":"ppg_brightness",
                "description":"Brightness of the MAX30101 LEDs",
-               "byte_start":5,
-               "byte_end":6,
+               "byte_start":3,
+               "byte_end":4,
                "size":1,
                "unit":null,
                "data_type":"uint",
-               "selection_type":"single",
+               "selection_type":"range",
                "default_value":"0",
-               "options":[
-                 {
-                    "name":".2mA",
-                    "description":".2mA",
-                    "value":"0"
-                 },
-                 {
-                    "name":".4mA",
-                    "description":".4mA",
-                    "value":"1"
-                 },
-                 {
-                    "name":".8mA",
-                    "description":".8mA",
-                    "value":"2"
-                 },
-                 {
-                    "name":"1.6mA",
-                    "description":"1.6mA",
-                    "value":"3"
-                  },
-                  {
-                    "name":"3mA",
-                    "description":"3mA",
-                    "value":"4"
-                  },
-                  {
-                    "name":"6.2",
-                    "description":"6.2mA",
-                    "value":"5"
-                  },
-                  {
-                   "name":"25.4",
-                   "description":"25.4mA",
-                   "value":"6"
-                 },
-                 {
-                   "name":"50",
-                   "description":"50 mA",
-                   "value":"7"
-                 }
-               ],
-               "range":null
+               "options": null,
+               "range": {
+                  "start":0,
+                  "end":255,
+                  "step":1
+               }
              }
-              ],
-              "data_values":[
+            ],
+              "data_values": [
                  {
                     "name":"red",
                     "description":"red value",
