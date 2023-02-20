@@ -79,7 +79,6 @@ void loop(){
 
     uint32_t now = millis();
     uint16_t accel_freq = accelServiceDesiredFrequencyMS();
-    uint16_t ppg_freq = 1000 / getPPGSampleRate();
 
     if ( (millis() - lastAccelRecording) >= accel_freq-1 && isAccelServiceEnabled()) {
       int32_t ax, ay, az;
@@ -117,15 +116,12 @@ void loop(){
       Serial.println(millis() - _start);
     }
     
-    if ( (millis() - lastPPGRecording) >= ppg_freq && isPPGServiceEnabled()) {
-      Serial.println("attempting ppg read");
-
+    if ( isPPGServiceEnabled() ) {
       particleSensorConfigure();
       // Check the sensor, read up to 3 samples
       particleSensor.check();
 
       if ( particleSensor.available() ) {
-        uint32_t start = millis();
 
         uint32_t red = particleSensor.getFIFORed();
         uint32_t ir = particleSensor.getFIFOIR();
@@ -136,14 +132,12 @@ void loop(){
         Serial.print(ir);
         Serial.print(", ");      
         Serial.println(green);
-        Serial.print("sensor read: ");
-        Serial.println(millis() - start);
 
         recordPPG(red, ir, green, referenceTimeMS);
         
         lastPPGRecording = millis();
-      } else {
-        Serial.println("PPG Sensor not available!");
+
+        particleSensor.nextSample();
       }
     }
 }
