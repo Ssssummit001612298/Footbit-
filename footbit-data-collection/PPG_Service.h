@@ -179,6 +179,8 @@ void recordPPG(uint32_t red, uint32_t ir, uint32_t green, int32_t referenceTimeM
   ppgDataBuf[ppgCursor++] = (green) & 0xFF;
 
   ppgDataBuf[ppgCursor++] = (uint8_t)recordOffset;
+  Serial.print("record offset: ");
+  Serial.println(recordOffset)
 }
 
 
